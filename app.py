@@ -156,6 +156,304 @@ def judge_certifications(spec_text):
     }
 
 # -----------------------------
+# 제품 카테고리 KC 기준 DB
+# -----------------------------
+KC_DB = [
+    # ── 헤어/미용 기기 ──
+    {"id": "hair_dryer", "ko": "헤어드라이기/전기드라이기",
+     "zh": ["吹风机","电吹风","护发吹风机","负离子吹风机","智能吹风机"],
+     "en": ["hair dryer","blow dryer","hair blower","ionic hair dryer"],
+     "safety": {"req": True, "std": "KC 60335-2-23", "note": "전기 헤어케어 기기 안전기준"},
+     "emc": {"req": True, "std": "CISPR 14-1", "note": "모터/스위칭전원 전자파 방출"},
+     "rf": {"req": False, "cond": "Bluetooth·WiFi 기능 탑재 시 필요", "std": "KN 300 328"}},
+    {"id": "hair_straightener", "ko": "헤어고데기/스트레이트너/컬링기",
+     "zh": ["直发器","卷发棒","直发梳","负离子直板夹","卷发器"],
+     "en": ["hair straightener","flat iron","curling iron","curling wand","hair curler"],
+     "safety": {"req": True, "std": "KC 60335-2-23", "note": "전기 헤어케어 기기 안전기준"},
+     "emc": {"req": True, "std": "CISPR 14-1", "note": "히팅 소자 및 전자제어"},
+     "rf": {"req": False, "cond": "무선 기능 탑재 시 필요"}},
+    {"id": "electric_shaver", "ko": "전기면도기/제모기",
+     "zh": ["电动剃须刀","剃须刀","脱毛仪","电动脱毛器"],
+     "en": ["electric shaver","electric razor","epilator","hair remover"],
+     "safety": {"req": True, "std": "KC 60335-2-8", "note": "전기면도기/제모기 안전기준"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "무선/충전 기능 탑재 시 필요"}},
+    {"id": "electric_toothbrush", "ko": "전동칫솔",
+     "zh": ["电动牙刷","声波牙刷","超声波牙刷"],
+     "en": ["electric toothbrush","sonic toothbrush","ultrasonic toothbrush"],
+     "safety": {"req": True, "std": "KC 60335-2-52"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "Bluetooth 앱 연동 시 필요"}},
+    {"id": "massager", "ko": "마사지기/안마기",
+     "zh": ["按摩仪","按摩器","眼部按摩仪","颈部按摩仪","头皮按摩仪","振动按摩器"],
+     "en": ["massager","massage device","eye massager","neck massager","scalp massager"],
+     "safety": {"req": True, "std": "KC 60335-2-32", "note": "마사지 기기 안전기준"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "Bluetooth/무선 기능 탑재 시 필요"}},
+    # ── 가전 ──
+    {"id": "fan", "ko": "선풍기/서큘레이터",
+     "zh": ["风扇","电风扇","循环扇","台扇","落地扇","塔扇"],
+     "en": ["fan","electric fan","air circulator","tower fan","desk fan"],
+     "safety": {"req": True, "std": "KC 60335-2-80"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "무선 리모컨·WiFi 탑재 시 필요"}},
+    {"id": "air_purifier", "ko": "공기청정기",
+     "zh": ["空气净化器","净化器","除菌器","空气消毒机"],
+     "en": ["air purifier","air cleaner","hepa filter","air sanitizer"],
+     "safety": {"req": True, "std": "KC 60335-2-65"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "WiFi·앱 연동 탑재 시 필요"}},
+    {"id": "humidifier", "ko": "가습기",
+     "zh": ["加湿器","超声波加湿器","雾化器"],
+     "en": ["humidifier","ultrasonic humidifier","mist maker"],
+     "safety": {"req": True, "std": "KC 60335-2-98"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "WiFi 탑재 시 필요"}},
+    {"id": "heater", "ko": "전기히터/온풍기",
+     "zh": ["暖风机","电暖器","取暖器","电热扇","暖气机"],
+     "en": ["space heater","electric heater","fan heater","ceramic heater","infrared heater"],
+     "safety": {"req": True, "std": "KC 60335-2-30"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "스마트 기능 탑재 시 필요"}},
+    {"id": "vacuum", "ko": "청소기/진공청소기",
+     "zh": ["吸尘器","无线吸尘器","手持吸尘器","扫地机器人"],
+     "en": ["vacuum cleaner","cordless vacuum","robot vacuum","handheld vacuum"],
+     "safety": {"req": True, "std": "KC 60335-2-2"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "로봇청소기·WiFi 탑재 시 필요"}},
+    {"id": "iron", "ko": "전기다리미",
+     "zh": ["电熨斗","蒸汽熨斗","手持挂烫机"],
+     "en": ["electric iron","steam iron","garment steamer"],
+     "safety": {"req": True, "std": "KC 60335-2-3"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False}},
+    {"id": "kettle", "ko": "전기포트/전기주전자",
+     "zh": ["电热水壶","电水壶","热水壶","烧水壶"],
+     "en": ["electric kettle","electric water boiler"],
+     "safety": {"req": True, "std": "KC 60335-2-15"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "스마트 기능 탑재 시 필요"}},
+    {"id": "blender", "ko": "믹서기/블렌더/푸드프로세서",
+     "zh": ["榨汁机","搅拌机","料理机","食品加工机","果汁机"],
+     "en": ["blender","juicer","food processor","mixer"],
+     "safety": {"req": True, "std": "KC 60335-2-14"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False}},
+    # ── 전원/충전 ──
+    {"id": "charger", "ko": "충전기/어댑터/전원공급장치",
+     "zh": ["充电器","充电头","适配器","电源适配器","快充"],
+     "en": ["charger","adapter","power adapter","power supply","usb charger","fast charger"],
+     "safety": {"req": True, "std": "KC 62368-1", "note": "IT/AV 전원 어댑터 안전기준"},
+     "emc": {"req": True, "std": "CISPR 32"},
+     "rf": {"req": False, "cond": "무선충전(Qi) 탑재 시 필요"}},
+    {"id": "power_bank", "ko": "보조배터리/파워뱅크",
+     "zh": ["充电宝","移动电源"],
+     "en": ["power bank","portable charger","battery pack"],
+     "safety": {"req": True, "std": "KC 62368-1 / KC 62133"},
+     "emc": {"req": True, "std": "CISPR 32"},
+     "rf": {"req": False}},
+    {"id": "wireless_charger", "ko": "무선충전기(Qi)",
+     "zh": ["无线充电器","无线充电板","无线充"],
+     "en": ["wireless charger","qi charger","inductive charger"],
+     "safety": {"req": True, "std": "KC 62368-1"},
+     "emc": {"req": True, "std": "CISPR 32"},
+     "rf": {"req": True, "std": "KN 303 417 (Qi)", "note": "무선전력전송 → 전파인증 필수"}},
+    # ── 조명 ──
+    {"id": "led_lamp", "ko": "LED 조명/스마트조명",
+     "zh": ["LED灯","LED灯泡","智能灯","台灯","落地灯"],
+     "en": ["led lamp","led bulb","smart light","desk lamp","floor lamp"],
+     "safety": {"req": True, "std": "KC 62560 / KC 60598"},
+     "emc": {"req": True, "std": "CISPR 15"},
+     "rf": {"req": False, "cond": "Bluetooth·Zigbee 탑재 시 필요"}},
+    # ── 무선 오디오 ──
+    {"id": "bluetooth_speaker", "ko": "블루투스 스피커/이어폰/헤드폰",
+     "zh": ["蓝牙音箱","蓝牙耳机","无线耳机","无线音箱"],
+     "en": ["bluetooth speaker","wireless earphone","wireless headphone","tws","earbuds"],
+     "safety": {"req": True, "std": "KC 62368-1"},
+     "emc": {"req": True, "std": "CISPR 32"},
+     "rf": {"req": True, "std": "KN 300 328 (BT)", "note": "무선 기능 → 전파인증 필수"}},
+    {"id": "earphone_wired", "ko": "유선이어폰/헤드폰",
+     "zh": ["有线耳机","耳塞式耳机","头戴耳机","有线耳麦"],
+     "en": ["wired earphone","wired headphone","earbuds wired","in-ear monitor"],
+     "safety": {"req": True, "std": "KC 62368-1"},
+     "emc": {"req": True, "std": "CISPR 32"},
+     "rf": {"req": False}},
+    # ── 웨어러블 ──
+    {"id": "smart_watch", "ko": "스마트워치/스마트밴드",
+     "zh": ["智能手表","智能手环","运动手表"],
+     "en": ["smart watch","smartwatch","fitness tracker","smart band"],
+     "safety": {"req": True, "std": "KC 62368-1"},
+     "emc": {"req": True, "std": "CISPR 32"},
+     "rf": {"req": True, "std": "KN 300 328 / KN 301 893", "note": "BT·WiFi → 전파인증 필수"}},
+    # ── 스마트기기 ──
+    {"id": "tablet", "ko": "태블릿/스마트패드",
+     "zh": ["平板电脑","智能平板","电子阅读器","学习机"],
+     "en": ["tablet","ipad","smart pad","e-reader","drawing tablet","learning tablet"],
+     "safety": {"req": True, "std": "KC 62368-1"},
+     "emc": {"req": True, "std": "CISPR 32"},
+     "rf": {"req": True, "std": "KN 300 328 / KN 301 893", "note": "WiFi/BT 필수 탑재 → 전파인증 필수"}},
+    {"id": "smart_plug", "ko": "스마트플러그/스마트콘센트",
+     "zh": ["智能插座","智能开关","WiFi插座","智能插排"],
+     "en": ["smart plug","smart socket","wifi plug","iot switch","smart outlet"],
+     "safety": {"req": True, "std": "KC 60884-1", "note": "플러그/콘센트 안전기준"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": True, "std": "KN 300 328", "note": "WiFi/BT 탑재 → 전파인증 필수"}},
+    # ── 기타 전자기기 ──
+    {"id": "robot", "ko": "로봇청소기/가정용로봇",
+     "zh": ["扫地机器人","清洁机器人","拖地机器人"],
+     "en": ["robot vacuum","robotic cleaner","robot mop"],
+     "safety": {"req": True, "std": "KC 60335-2-2"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": True, "std": "KN 300 328", "note": "WiFi/BT 탑재 → 전파인증 필수"}},
+    {"id": "camera", "ko": "카메라/웹캠/IP카메라",
+     "zh": ["摄像头","网络摄像机","IP摄像机","监控摄像头","行车记录仪"],
+     "en": ["camera","webcam","ip camera","security camera","dashcam"],
+     "safety": {"req": True, "std": "KC 62368-1"},
+     "emc": {"req": True, "std": "CISPR 32"},
+     "rf": {"req": False, "cond": "WiFi·BT 탑재 시 필요"}},
+    {"id": "portable_projector", "ko": "미니빔/포터블프로젝터",
+     "zh": ["微型投影仪","便携投影仪","口袋投影仪","手持投影仪"],
+     "en": ["mini projector","portable projector","pocket projector","pico projector"],
+     "safety": {"req": True, "std": "KC 62368-1"},
+     "emc": {"req": True, "std": "CISPR 32"},
+     "rf": {"req": False, "cond": "WiFi/BT 탑재 시 필요"}},
+    {"id": "usb_hub", "ko": "USB허브/도킹스테이션",
+     "zh": ["USB集线器","扩展坞","USB分线器","多功能扩展坞","Type-C扩展坞"],
+     "en": ["usb hub","docking station","multiport hub","usb splitter","type-c hub"],
+     "safety": {"req": True, "std": "KC 62368-1"},
+     "emc": {"req": True, "std": "CISPR 32"},
+     "rf": {"req": False}},
+    {"id": "drone", "ko": "드론/무인기",
+     "zh": ["无人机","飞行器","航拍无人机","四轴飞行器"],
+     "en": ["drone","uav","quadcopter","fpv drone","aerial drone"],
+     "safety": {"req": True, "std": "KC 62368-1 / 항공안전법 적용"},
+     "emc": {"req": True, "std": "CISPR 32"},
+     "rf": {"req": True, "std": "KN 300 328", "note": "조종 무선신호 → 전파인증 필수 + 초경량비행장치 신고 필요"}},
+    # ── 뷰티/미용 기기 ──
+    {"id": "led_mask", "ko": "LED마스크/광치료기기",
+     "zh": ["LED面罩","光疗面罩","LED美容仪","红蓝光面罩","光子嫩肤仪","LED灯板"],
+     "en": ["led mask","led face mask","phototherapy mask","light therapy mask","red light therapy","blue light device","led panel"],
+     "safety": {"req": True, "std": "KC 60335-2-32", "note": "미용기기 안전기준 + IEC 62471 광생물학적 안전 고려"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "Bluetooth 앱 연동 시 필요"}},
+    {"id": "rf_beauty", "ko": "RF미용기기/고주파미용기/리프팅기기",
+     "zh": ["射频美容仪","RF美容仪","高频美容仪","提拉紧肤仪","热玛吉","射频仪"],
+     "en": ["rf beauty device","radio frequency beauty","rf facial","rf lifting","rf skin tightening","thermagic","fractional rf"],
+     "safety": {"req": True, "std": "KC 60335-2-32", "note": "의도적 RF 방출 → 전파인증 별도 확인 필수"},
+     "emc": {"req": True, "std": "CISPR 14-1", "note": "의도적 RF 방출기기 추가 EMC 검토 필요"},
+     "rf": {"req": True, "std": "방송통신기자재 등의 적합성평가", "note": "의도적 RF(고주파) 에너지 방출 → 전파인증 필수"}},
+    {"id": "ems_device", "ko": "EMS기기/미세전류기기/전기자극기",
+     "zh": ["EMS仪","微电流仪","电刺激仪","EMS腹肌贴","EMS面部仪","微电流美容仪"],
+     "en": ["ems device","ems stimulator","microcurrent device","electrical muscle stimulation","ems facial","ems abs"],
+     "safety": {"req": True, "std": "KC 60335-2-32 / IEC 60601-1", "note": "전기자극 출력에 따라 의료기기 분류 가능"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "Bluetooth/무선 탑재 시 필요"}},
+    {"id": "ipl_laser", "ko": "IPL제모기/레이저제모기/홈레이저",
+     "zh": ["IPL脱毛仪","激光脱毛仪","家用脱毛仪","光子脱毛","脱毛器"],
+     "en": ["ipl hair removal","laser hair removal","ipl device","home laser","photoepilator","intense pulsed light"],
+     "safety": {"req": True, "std": "KC 60335-2-8 + IEC 62471", "note": "광생물학적 안전 기준 별도 검토 필수"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "Bluetooth 앱 탑재 시 필요"}},
+    {"id": "ultrasonic_beauty", "ko": "초음파미용기/초음파클렌저/HIFU",
+     "zh": ["超声波美容仪","超声波洁面仪","HIFU仪","聚焦超声","超声导入仪"],
+     "en": ["ultrasonic beauty","ultrasonic facial","hifu device","ultrasonic cleaner face","sonic facial"],
+     "safety": {"req": True, "std": "KC 60335-2-32", "note": "초음파 출력 레벨에 따라 의료기기 분류 가능"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "무선 기능 탑재 시 필요"}},
+    {"id": "nail_lamp", "ko": "네일램프/UV젤램프/네일드라이어",
+     "zh": ["美甲灯","UV灯","LED美甲灯","光疗灯","固化灯"],
+     "en": ["nail lamp","uv nail lamp","led nail lamp","gel nail lamp","nail dryer","uv curing lamp"],
+     "safety": {"req": True, "std": "KC 60598-1 / IEC 62471", "note": "UV 방출 기기 광생물학적 안전 검토"},
+     "emc": {"req": True, "std": "CISPR 15"},
+     "rf": {"req": False}},
+    {"id": "galvanic", "ko": "갈바닉기기/이온영동기기/피부관리기",
+     "zh": ["离子导入仪","高频仪","电流美容仪","离子美容仪","导入仪"],
+     "en": ["galvanic device","iontophoresis","ion infusion","galvanic facial","skin infusion device"],
+     "safety": {"req": True, "std": "KC 60335-2-32"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "무선 기능 탑재 시 필요"}},
+    {"id": "facial_steamer", "ko": "페이셜스티머/미안기/스팀기",
+     "zh": ["蒸脸仪","补水仪","面部蒸汽仪","美颜仪","纳米喷雾仪"],
+     "en": ["facial steamer","face steamer","nano mist sprayer","beauty steamer","steam facial"],
+     "safety": {"req": True, "std": "KC 60335-2-23", "note": "스팀 발생 가열 소자 포함"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "무선 기능 탑재 시 필요"}},
+    {"id": "blackhead_remover", "ko": "블랙헤드제거기/모공흡입기",
+     "zh": ["吸黑头仪","毛孔清洁仪","真空吸附仪","毛孔吸尘器"],
+     "en": ["blackhead remover","pore vacuum","suction blackhead","comedone extractor"],
+     "safety": {"req": True, "std": "KC 60335-2-32"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "무선 기능 탑재 시 필요"}},
+    {"id": "heated_eye_mask", "ko": "전기눈마스크/온열안대/온열눈찜질기",
+     "zh": ["热敷眼罩","电热眼罩","蒸汽眼罩","加热眼罩","护眼仪"],
+     "en": ["heated eye mask","electric eye mask","steam eye mask","eye warmer","thermal eye mask"],
+     "safety": {"req": True, "std": "KC 60335-2-32", "note": "가열 소자 안전기준 적용"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "Bluetooth 앱 탑재 시 필요"}},
+    {"id": "hair_growth", "ko": "두피케어기기/모발성장기기",
+     "zh": ["生发仪","激光生发帽","头皮护理仪","毛发生长仪","低能量激光"],
+     "en": ["hair growth device","laser hair growth","scalp treatment device","lllt helmet","hair regrowth device"],
+     "safety": {"req": True, "std": "KC 60335-2-32 / IEC 62471", "note": "레이저/LED 광출력 IEC 62471 검토 필요"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "Bluetooth 탑재 시 필요"}},
+    {"id": "cosmetic_fridge", "ko": "화장품냉장고/미니냉장고",
+     "zh": ["化妆品冰箱","美容冰箱","护肤品冰箱","迷你冰箱","小冰箱"],
+     "en": ["cosmetic fridge","beauty fridge","skincare fridge","mini fridge","makeup fridge"],
+     "safety": {"req": True, "std": "KC 60335-2-24", "note": "냉장기기 안전기준"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "WiFi/스마트 기능 탑재 시 필요"}},
+    {"id": "neck_massager", "ko": "목마사지기/경추견인기",
+     "zh": ["颈椎牵引器","颈部按摩仪","颈椎按摩器","脖子按摩仪","电动颈部按摩"],
+     "en": ["neck traction","cervical traction","neck massager electric","neck stretcher"],
+     "safety": {"req": True, "std": "KC 60335-2-32"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "무선 기능 탑재 시 필요"}},
+    {"id": "foot_massager", "ko": "발마사지기/종아리마사지기",
+     "zh": ["足部按摩仪","脚底按摩器","小腿按摩仪","腿部按摩仪","气压按摩"],
+     "en": ["foot massager","foot spa","leg massager","calf massager","air compression leg"],
+     "safety": {"req": True, "std": "KC 60335-2-32"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "무선/Bluetooth 탑재 시 필요"}},
+    {"id": "sonic_cleaner", "ko": "전동세안기/소닉클렌저",
+     "zh": ["洁面仪","电动洗脸刷","硅胶洁面仪","声波洁面仪","振动洁面刷"],
+     "en": ["electric facial cleansing","sonic cleanser","silicone cleanser","facial brush","cleansing device"],
+     "safety": {"req": True, "std": "KC 60335-2-23"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False, "cond": "무선 기능 탑재 시 필요"}},
+    {"id": "hair_cap", "ko": "헤어트리트먼트캡/스팀헤어캡",
+     "zh": ["蒸汽发膜帽","电热护发帽","加热发膜帽","蒸汽焗油帽"],
+     "en": ["hair treatment cap","steam hair cap","heated hair cap","electric hair cap","hair steamer cap"],
+     "safety": {"req": True, "std": "KC 60335-2-23", "note": "발열 소자 포함 헤어케어 기기"},
+     "emc": {"req": True, "std": "CISPR 14-1"},
+     "rf": {"req": False}},
+]
+
+# -----------------------------
+# 제품 카테고리 매칭
+# -----------------------------
+WIRELESS_PATTERN = re.compile(
+    r"bluetooth|wifi|wi-fi|wireless|무선|蓝牙|无线|zigbee|nfc|rf|ble", re.IGNORECASE
+)
+
+def match_product_categories(text):
+    lower = text.lower()
+    matched = []
+    has_wireless = bool(WIRELESS_PATTERN.search(text))
+
+    for p in KC_DB:
+        en_match = any(k.lower() in lower for k in p["en"])
+        zh_match = any(k in text for k in p["zh"])
+        ko_names = p["ko"].replace("/", "|").split("|")
+        ko_match = any(k.lower() in lower for k in ko_names)
+
+        if en_match or zh_match or ko_match:
+            matched_by = "영어" if en_match else ("중국어" if zh_match else "한국어")
+            rf_required = p["rf"]["req"] or (has_wireless and bool(p["rf"].get("cond")))
+            matched.append({**p, "matched_by": matched_by, "rf_required": rf_required, "has_wireless": has_wireless})
+
+    return matched, has_wireless
+
+# -----------------------------
 # 분석 내용 생성
 # -----------------------------
 def build_factory_checklist(cert_result, spec_text):
@@ -338,6 +636,7 @@ with col2:
     st.write("- 1차로 PyPDF2로 텍스트를 추출합니다.")
     st.write("- 텍스트가 거의 없으면 OCR(EasyOCR)로 자동 재시도합니다.")
     st.write("- 영어/중국어 키워드 기준으로 KC 안전, EMC, RF 필요 여부를 추정합니다.")
+    st.write("- 제품 카테고리 DB(43종)로 적용 KC 표준까지 안내합니다.")
 
 if st.button("분석 실행", type="primary", use_container_width=True):
     if not pdf_file:
@@ -353,6 +652,9 @@ if st.button("분석 실행", type="primary", use_container_width=True):
         second_quality = build_second_quality_check(cert_result)
         package_plan = build_package_plan(combined_text, cert_result)
         detail_page = build_detail_page_points(combined_text, cert_result)
+
+        # 제품 카테고리 매칭
+        matched_cats, has_wireless = match_product_categories(combined_text)
 
         st.divider()
         st.header("분석 결과")
@@ -370,6 +672,57 @@ if st.button("분석 실행", type="primary", use_container_width=True):
         st.subheader("4. 판단 근거")
         st.text(cert_result["reason"])
 
+        # ── 제품 카테고리별 KC 표준 (신규) ──────────────────
+        st.divider()
+        st.subheader("📋 제품 카테고리별 KC 인증 기준")
+        if has_wireless:
+            st.info("🔵 무선 기능 키워드 감지됨 — 조건부 RF 인증 항목도 필수로 표시됩니다.")
+
+        if matched_cats:
+            for cat in matched_cats:
+                with st.expander(f"🔍 {cat['ko']}  ·  매칭: {cat['matched_by']} 키워드"):
+                    c1, c2, c3 = st.columns(3)
+
+                    with c1:
+                        st.markdown("**🔴 KC 안전인증**")
+                        label = "✅ 필수" if cat["safety"]["req"] else "➖ 불필요"
+                        st.write(label)
+                        st.caption(f"기준: {cat['safety']['std']}")
+                        if cat["safety"].get("note"):
+                            st.caption(f"📌 {cat['safety']['note']}")
+
+                    with c2:
+                        st.markdown("**🟣 EMC 적합성**")
+                        label = "✅ 필수" if cat["emc"]["req"] else "➖ 불필요"
+                        st.write(label)
+                        st.caption(f"기준: {cat['emc']['std']}")
+                        if cat["emc"].get("note"):
+                            st.caption(f"📌 {cat['emc']['note']}")
+
+                    with c3:
+                        st.markdown("**🔵 RF 전파인증**")
+                        if cat["rf_required"]:
+                            if cat["rf"].get("req"):
+                                st.write("✅ 필수")
+                            else:
+                                st.write("⚠️ 조건부 필수")
+                                st.caption(f"조건: {cat['rf'].get('cond','')}")
+                        else:
+                            if cat["rf"].get("cond"):
+                                st.write("➖ 현재 불필요")
+                                st.caption(f"단, {cat['rf'].get('cond','')}")
+                            else:
+                                st.write("➖ 불필요")
+                        if cat["rf"].get("std"):
+                            st.caption(f"기준: {cat['rf']['std']}")
+                        if cat["rf"].get("note"):
+                            st.caption(f"📌 {cat['rf']['note']}")
+        else:
+            st.warning("DB에서 매칭되는 제품 카테고리를 찾지 못했습니다. 키워드를 추가 메모란에 직접 입력해보세요.")
+            st.caption("지원 카테고리: 헤어드라이기, 고데기, 면도기, 마사지기, LED마스크, RF미용기, EMS기기, IPL제모기, 초음파미용기, 네일램프, 스티머, 블루투스기기, 충전기, 보조배터리, 드론 등 43종")
+        # ─────────────────────────────────────────────────────
+
+        st.divider()
         st.subheader("5. 공장 참관 체크리스트")
         st.markdown(factory_checklist)
 
