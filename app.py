@@ -1,6 +1,6 @@
 import re
 import streamlit as st
-from PyPDF2 import PdfReader
+import pdfplumber
 from PIL import Image
 from pdf2image import convert_from_bytes
 import easyocr
@@ -29,17 +29,17 @@ def find_keywords(text, keywords):
     return found
 
 # -----------------------------
-# PDF 텍스트 추출 (1차: PyPDF2)
+# PDF 텍스트 추출 (1차: pdfplumber)
 # -----------------------------
 def extract_text_from_pdf_pypdf2(pdf_bytes):
     text = ""
     try:
         from io import BytesIO
-        reader = PdfReader(BytesIO(pdf_bytes))
-        for page in reader.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text + "\n"
+        with pdfplumber.open(BytesIO(pdf_bytes)) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
     except Exception as e:
         text += f"\n[PDF 읽기 오류] {e}"
     return text.strip()
